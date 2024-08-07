@@ -43,6 +43,3 @@ class PlutoniumChatCog(commands.Cog):
     def cog_unload(self):
         self.observer.stop()
         self.observer.join()
-
-def setup(bot):
-    bot.add_cog(PlutoniumChatCog(bot))
