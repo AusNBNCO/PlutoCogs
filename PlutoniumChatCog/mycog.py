@@ -98,3 +98,6 @@ class PlutoniumChatCog(commands.Cog):
         if self.observer:
             self.observer.stop()
             self.observer.join()
+
+def setup(bot):
+    bot.add_cog(PlutoniumChatCog(bot))
