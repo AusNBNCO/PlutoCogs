@@ -1,0 +1,11 @@
+{
+    "author": ["-Optus"],
+    "description": "A cog to log Plutonium server chat messages to a Discord channel.",
+    "install_msg": "Thank you for installing PlutoniumChat cog.",
+    "short": "Logs Plutonium server chat messages.",
+    "requirements": ["watchdog", "python-dotenv"],
+    "min_bot_version": "3.4.0",
+    "hidden": false,
+    "disabled": false,
+    "type": "COG"
+}
