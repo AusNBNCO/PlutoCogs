@@ -34,16 +34,23 @@ class PlutoniumChatCog(commands.Cog):
 
     async def read_log_file(self):
         guild = self.bot.guilds[0]
+        if guild is None:
+            print("No guild available.")
+            return
+
         channel_id = await self.config.guild(guild).channel_id()
         if channel_id is None:
+            print("Channel ID is not set.")
             return
 
         channel = self.bot.get_channel(channel_id)
         if channel is None:
+            print(f"Channel with ID {channel_id} not found.")
             return
 
         log_file_path = await self.config.guild(guild).log_file_path()
         if log_file_path is None:
+            print("Log file path is not set.")
             return
 
         try:
@@ -74,6 +81,7 @@ class PlutoniumChatCog(commands.Cog):
     async def start_observer(self, guild):
         log_file_path = await self.config.guild(guild).log_file_path()
         if log_file_path is None:
+            print("Log file path is not set, observer not started.")
             return
 
         if self.observer:
@@ -84,6 +92,7 @@ class PlutoniumChatCog(commands.Cog):
         self.observer = Observer()
         self.observer.schedule(self.handler, path=os.path.dirname(log_file_path), recursive=False)
         self.observer.start()
+        print("Observer started.")
 
     def cog_unload(self):
         if self.observer:
