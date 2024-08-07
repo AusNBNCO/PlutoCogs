@@ -35,15 +35,15 @@ class PlutoniumChatCog(commands.Cog):
     async def read_log_file(self):
         guild = self.bot.guilds[0]
         channel_id = await self.config.guild(guild).channel_id()
-        if not channel_id:
+        if channel_id is None:
             return
 
         channel = self.bot.get_channel(channel_id)
-        if not channel:
+        if channel is None:
             return
 
         log_file_path = await self.config.guild(guild).log_file_path()
-        if not log_file_path:
+        if log_file_path is None:
             return
 
         try:
@@ -73,7 +73,7 @@ class PlutoniumChatCog(commands.Cog):
 
     async def start_observer(self, guild):
         log_file_path = await self.config.guild(guild).log_file_path()
-        if not log_file_path:
+        if log_file_path is None:
             return
 
         if self.observer:
