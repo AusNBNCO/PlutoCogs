@@ -35,19 +35,24 @@ class PlutoniumChatCog(commands.Cog):
     async def read_log_file(self):
         guild = self.bot.guilds[0]
         channel_id = await self.config.guild(guild).channel_id()
-        if channel_id:
-            channel = self.bot.get_channel(channel_id)
-            if channel is None:
-                return
-            log_file_path = await self.config.guild(guild).log_file_path()
-            if log_file_path:
-                with open(log_file_path, 'r') as file:
-                    file.seek(self.last_position)
-                    lines = file.readlines()
-                    self.last_position = file.tell()
+        if not channel_id:
+            return
 
-                for line in lines:
-                    await channel.send(line.strip())
+        channel = self.bot.get_channel(channel_id)
+        if not channel:
+            return
+
+        log_file_path = await self.config.guild(guild).log_file_path()
+        if not log_file_path:
+            return
+
+        with open(log_file_path, 'r') as file:
+            file.seek(self.last_position)
+            lines = file.readlines()
+            self.last_position = file.tell()
+
+        for line in lines:
+            await channel.send(line.strip())
 
     @commands.command()
     async def setlogchannel(self, ctx, channel: discord.TextChannel):
@@ -67,6 +72,7 @@ class PlutoniumChatCog(commands.Cog):
         log_file_path = await self.config.guild(guild).log_file_path()
         if not log_file_path:
             return
+
         if self.observer:
             self.observer.stop()
             self.observer.join()
