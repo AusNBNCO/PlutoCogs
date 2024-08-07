@@ -52,4 +52,40 @@ class PlutoniumChatCog(commands.Cog):
                 lines = file.readlines()
                 self.last_position = file.tell()
 
-            for line in 
+            for line in lines:
+                await channel.send(line.strip())
+        except Exception as e:
+            print(f"Error reading log file: {e}")
+
+    @commands.command()
+    async def setlogchannel(self, ctx, channel: discord.TextChannel):
+        """Set the channel where chat logs will be sent."""
+        await self.config.guild(ctx.guild).channel_id.set(channel.id)
+        await ctx.send(f"Chat log channel set to {channel.mention}")
+        await self.start_observer(ctx.guild)
+
+    @commands.command()
+    async def setlogpath(self, ctx, path: str):
+        """Set the path to the chat log file."""
+        await self.config.guild(ctx.guild).log_file_path.set(path)
+        await ctx.send(f"Chat log file path set to {path}")
+        await self.start_observer(ctx.guild)
+
+    async def start_observer(self, guild):
+        log_file_path = await self.config.guild(guild).log_file_path()
+        if not log_file_path:
+            return
+
+        if self.observer:
+            self.observer.stop()
+            self.observer.join()
+
+        self.handler = LogHandler(self.read_log_file)
+        self.observer = Observer()
+        self.observer.schedule(self.handler, path=os.path.dirname(log_file_path), recursive=False)
+        self.observer.start()
+
+    def cog_unload(self):
+        if self.observer:
+            self.observer.stop()
+            self.observer.join()
