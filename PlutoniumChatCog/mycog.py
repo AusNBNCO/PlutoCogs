@@ -1,24 +1,8 @@
 import discord
-from discord.ext import tasks
 from redbot.core import commands, Config
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from dotenv import load_dotenv
-import os
-import asyncio
-
-load_dotenv()
-
-class LogHandler(FileSystemEventHandler):
-    def __init__(self, callback):
-        self.callback = callback
-
-    def on_modified(self, event):
-        if event.src_path.endswith("chat.log"):
-            asyncio.run_coroutine_threadsafe(self.callback(), asyncio.get_event_loop())
 
 class PlutoniumChatCog(commands.Cog):
-    """Cog for logging Plutonium server chat messages to Discord."""
+    """Minimal Cog for debugging."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -28,96 +12,13 @@ class PlutoniumChatCog(commands.Cog):
             "log_file_path": None,
         }
         self.config.register_guild(**default_guild)
-        self.observer = None
-        self.handler = None
-        self.last_position = 0
-
-    async def read_log_file(self):
-        try:
-            guild = self.bot.guilds[0] if self.bot.guilds else None
-            if guild is None:
-                print("No guild available.")
-                return
-
-            print(f"Reading configuration for guild: {guild.name} (ID: {guild.id})")
-            channel_id = await self.config.guild(guild).channel_id()
-            if channel_id is None:
-                print("Channel ID is not set.")
-                return
-
-            print(f"Channel ID: {channel_id}")
-            channel = self.bot.get_channel(channel_id)
-            if channel is None:
-                print(f"Channel with ID {channel_id} not found.")
-                return
-
-            log_file_path = await self.config.guild(guild).log_file_path()
-            if log_file_path is None:
-                print("Log file path is not set.")
-                return
-
-            print(f"Log file path: {log_file_path}")
-            with open(log_file_path, 'r') as file:
-                file.seek(self.last_position)
-                lines = file.readlines()
-                self.last_position = file.tell()
-
-            for line in lines:
-                await channel.send(line.strip())
-        except Exception as e:
-            print(f"Error in read_log_file: {e}")
 
     @commands.command()
-    async def setlogchannel(self, ctx, channel: discord.TextChannel):
-        """Set the channel where chat logs will be sent."""
-        try:
-            await self.config.guild(ctx.guild).channel_id.set(channel.id)
-            await ctx.send(f"Chat log channel set to {channel.mention}")
-            await self.start_observer(ctx.guild)
-        except Exception as e:
-            print(f"Error in setlogchannel: {e}")
-
-    @commands.command()
-    async def setlogpath(self, ctx, path: str):
-        """Set the path to the chat log file."""
-        try:
-            await self.config.guild(ctx.guild).log_file_path.set(path)
-            await ctx.send(f"Chat log file path set to {path}")
-            await self.start_observer(ctx.guild)
-        except Exception as e:
-            print(f"Error in setlogpath: {e}")
-
-    async def start_observer(self, guild):
-        try:
-            print(f"Starting observer for guild: {guild.name} (ID: {guild.id})")
-            log_file_path = await self.config.guild(guild).log_file_path()
-            if log_file_path is None:
-                print("Log file path is not set, observer not started.")
-                return
-
-            print(f"Observer log file path: {log_file_path}")
-            if self.observer:
-                self.observer.stop()
-                self.observer.join()
-
-            self.handler = LogHandler(self.read_log_file)
-            self.observer = Observer()
-            self.observer.schedule(self.handler, path=os.path.dirname(log_file_path), recursive=False)
-            self.observer.start()
-            print("Observer started.")
-        except Exception as e:
-            print(f"Error in start_observer: {e}")
-
-    def cog_unload(self):
-        print("Unloading cog and stopping observer.")
-        if self.observer:
-            self.observer.stop()
-            self.observer.join()
+    async def ping(self, ctx):
+        """A simple ping command to test the cog."""
+        await ctx.send("Pong!")
 
 def setup(bot):
-    try:
-        cog = PlutoniumChatCog(bot)
-        bot.add_cog(cog)
-        print("Cog setup complete.")
-    except Exception as e:
-        print(f"Error in setup: {e}")
+    cog = PlutoniumChatCog(bot)
+    bot.add_cog(cog)
+    print("Cog setup complete.")
