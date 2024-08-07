@@ -25,7 +25,7 @@ class PlutoniumChatCog(commands.Cog):
         self.config = Config.get_conf(self, identifier=1234567890)
         default_guild = {
             "channel_id": None,
-            "log_file_path": "path/to/your/chat.log",
+            "log_file_path": None,
         }
         self.config.register_guild(**default_guild)
         self.observer = None
@@ -39,30 +39,32 @@ class PlutoniumChatCog(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel is None:
                 return
-            with open(await self.config.guild(guild).log_file_path(), 'r') as file:
-                file.seek(self.last_position)
-                lines = file.readlines()
-                self.last_position = file.tell()
+            log_file_path = await self.config.guild(guild).log_file_path()
+            if log_file_path:
+                with open(log_file_path, 'r') as file:
+                    file.seek(self.last_position)
+                    lines = file.readlines()
+                    self.last_position = file.tell()
 
-            for line in lines:
-                await channel.send(line.strip())
+                for line in lines:
+                    await channel.send(line.strip())
 
     @commands.command()
     async def setlogchannel(self, ctx, channel: discord.TextChannel):
         """Set the channel where chat logs will be sent."""
         await self.config.guild(ctx.guild).channel_id.set(channel.id)
         await ctx.send(f"Chat log channel set to {channel.mention}")
-        self.start_observer(ctx.guild)
+        await self.start_observer(ctx.guild)
 
     @commands.command()
     async def setlogpath(self, ctx, path: str):
         """Set the path to the chat log file."""
         await self.config.guild(ctx.guild).log_file_path.set(path)
         await ctx.send(f"Chat log file path set to {path}")
-        self.start_observer(ctx.guild)
+        await self.start_observer(ctx.guild)
 
-    def start_observer(self, guild):
-        log_file_path = self.bot.loop.run_until_complete(self.config.guild(guild).log_file_path())
+    async def start_observer(self, guild):
+        log_file_path = await self.config.guild(guild).log_file_path()
         if not log_file_path:
             return
         if self.observer:
