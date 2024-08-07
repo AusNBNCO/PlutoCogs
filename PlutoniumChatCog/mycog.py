@@ -13,9 +13,3 @@ class PlutoniumChatCog(commands.Cog):
         """A simple ping command to test the cog."""
         await ctx.send("Pong!")
         print("Ping command executed")
-
-async def setup(bot):
-    print("Setting up cog")
-    cog = PlutoniumChatCog(bot)
-    await bot.add_cog(cog)
-    print("Cog setup complete")
