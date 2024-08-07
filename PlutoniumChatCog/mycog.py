@@ -33,7 +33,8 @@ class PlutoniumChatCog(commands.Cog):
         self.last_position = 0
 
     async def read_log_file(self):
-        guild = self.bot.guilds[0]
+        print("Attempting to read log file...")
+        guild = self.bot.guilds[0] if self.bot.guilds else None
         if guild is None:
             print("No guild available.")
             return
@@ -108,3 +109,4 @@ class PlutoniumChatCog(commands.Cog):
 def setup(bot):
     cog = PlutoniumChatCog(bot)
     bot.add_cog(cog)
+    print("Cog setup complete.")
