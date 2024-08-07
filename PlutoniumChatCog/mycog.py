@@ -33,31 +33,30 @@ class PlutoniumChatCog(commands.Cog):
         self.last_position = 0
 
     async def read_log_file(self):
-        print("Attempting to read log file...")
-        guild = self.bot.guilds[0] if self.bot.guilds else None
-        if guild is None:
-            print("No guild available.")
-            return
-
-        print(f"Reading configuration for guild: {guild.name} (ID: {guild.id})")
-        channel_id = await self.config.guild(guild).channel_id()
-        if channel_id is None:
-            print("Channel ID is not set.")
-            return
-
-        print(f"Channel ID: {channel_id}")
-        channel = self.bot.get_channel(channel_id)
-        if channel is None:
-            print(f"Channel with ID {channel_id} not found.")
-            return
-
-        log_file_path = await self.config.guild(guild).log_file_path()
-        if log_file_path is None:
-            print("Log file path is not set.")
-            return
-
-        print(f"Log file path: {log_file_path}")
         try:
+            guild = self.bot.guilds[0] if self.bot.guilds else None
+            if guild is None:
+                print("No guild available.")
+                return
+
+            print(f"Reading configuration for guild: {guild.name} (ID: {guild.id})")
+            channel_id = await self.config.guild(guild).channel_id()
+            if channel_id is None:
+                print("Channel ID is not set.")
+                return
+
+            print(f"Channel ID: {channel_id}")
+            channel = self.bot.get_channel(channel_id)
+            if channel is None:
+                print(f"Channel with ID {channel_id} not found.")
+                return
+
+            log_file_path = await self.config.guild(guild).log_file_path()
+            if log_file_path is None:
+                print("Log file path is not set.")
+                return
+
+            print(f"Log file path: {log_file_path}")
             with open(log_file_path, 'r') as file:
                 file.seek(self.last_position)
                 lines = file.readlines()
@@ -66,39 +65,48 @@ class PlutoniumChatCog(commands.Cog):
             for line in lines:
                 await channel.send(line.strip())
         except Exception as e:
-            print(f"Error reading log file: {e}")
+            print(f"Error in read_log_file: {e}")
 
     @commands.command()
     async def setlogchannel(self, ctx, channel: discord.TextChannel):
         """Set the channel where chat logs will be sent."""
-        await self.config.guild(ctx.guild).channel_id.set(channel.id)
-        await ctx.send(f"Chat log channel set to {channel.mention}")
-        await self.start_observer(ctx.guild)
+        try:
+            await self.config.guild(ctx.guild).channel_id.set(channel.id)
+            await ctx.send(f"Chat log channel set to {channel.mention}")
+            await self.start_observer(ctx.guild)
+        except Exception as e:
+            print(f"Error in setlogchannel: {e}")
 
     @commands.command()
     async def setlogpath(self, ctx, path: str):
         """Set the path to the chat log file."""
-        await self.config.guild(ctx.guild).log_file_path.set(path)
-        await ctx.send(f"Chat log file path set to {path}")
-        await self.start_observer(ctx.guild)
+        try:
+            await self.config.guild(ctx.guild).log_file_path.set(path)
+            await ctx.send(f"Chat log file path set to {path}")
+            await self.start_observer(ctx.guild)
+        except Exception as e:
+            print(f"Error in setlogpath: {e}")
 
     async def start_observer(self, guild):
-        print(f"Starting observer for guild: {guild.name} (ID: {guild.id})")
-        log_file_path = await self.config.guild(guild).log_file_path()
-        if log_file_path is None:
-            print("Log file path is not set, observer not started.")
-            return
+        try:
+            print(f"Starting observer for guild: {guild.name} (ID: {guild.id})")
+            log_file_path = await self.config.guild(guild).log_file_path()
+            if log_file_path is None:
+                print("Log file path is not set, observer not started.")
+                return
 
-        print(f"Observer log file path: {log_file_path}")
-        if self.observer:
-            self.observer.stop()
-            self.observer.join()
+            print(f"Observer log file path: {log_file_path}")
+            if self.observer:
+                self.observer.stop()
+                self.observer.join()
 
-        self.handler = LogHandler(self.read_log_file)
-        self.observer = Observer()
-        self.observer.schedule(self.handler, path=os.path.dirname(log_file_path), recursive=False)
-        self.observer.start()
-        print("Observer started.")
+            self.handler = LogHandler(self.read_log_file)
+            self.observer = Observer()
+            self.observer.schedule(self.handler, path=os.path.dirname(log_file_path), recursive=False)
+            self.observer.start()
+            print("Observer started.")
+        except Exception as e:
+            print(f"Error in start_observer: {e}")
 
     def cog_unload(self):
         print("Unloading cog and stopping observer.")
@@ -107,6 +115,9 @@ class PlutoniumChatCog(commands.Cog):
             self.observer.join()
 
 def setup(bot):
-    cog = PlutoniumChatCog(bot)
-    bot.add_cog(cog)
-    print("Cog setup complete.")
+    try:
+        cog = PlutoniumChatCog(bot)
+        bot.add_cog(cog)
+        print("Cog setup complete.")
+    except Exception as e:
+        print(f"Error in setup: {e}")
